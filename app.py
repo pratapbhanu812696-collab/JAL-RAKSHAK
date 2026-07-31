@@ -13,6 +13,7 @@ import joblib
 import os
 import plotly.express as px
 import plotly.graph_objects as go
+import alerts
 
 st.set_page_config(
     page_title="JAL-RAKSHAK | Early Warning Dashboard",
@@ -36,7 +37,7 @@ FEATURES = [
 # ---------------------------------------------------------------------
 @st.cache_data
 def load_data():
-    path = "data/jal_rakshak_dataset.csv"
+    path = "jal_rakshak_dataset.csv"
     if not os.path.exists(path):
         return None
     df = pd.read_csv(path)
@@ -46,7 +47,7 @@ def load_data():
 
 @st.cache_resource
 def load_model():
-    path = "models/outbreak_model.pkl"
+    path = "outbreak_model.pkl"
     if not os.path.exists(path):
         return None
     return joblib.load(path)
@@ -188,6 +189,47 @@ with c2:
     fig2 = px.area(trend2, x="date", y="reported_symptom_cases", color_discrete_sequence=["#c92a2a"])
     fig2.update_layout(margin=dict(t=30), yaxis_title="Symptom Cases")
     st.plotly_chart(fig2, use_container_width=True)
+
+# ---------------------------------------------------------------------
+# SMS / WhatsApp alert dispatch for high-risk villages
+# ---------------------------------------------------------------------
+st.subheader("📲 Send Outbreak Alerts")
+
+high_risk_villages = latest[latest["predicted_risk"] > 0.55][["village", "state", "predicted_risk"]].copy()
+high_risk_villages["risk"] = (high_risk_villages["predicted_risk"] * 100).round(1)
+high_risk_list = high_risk_villages[["village", "state", "risk"]].to_dict("records")
+
+if not alerts.is_configured():
+    st.info(
+        "SMS/WhatsApp alerts are not configured yet. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, "
+        "and TWILIO_FROM_NUMBER as environment variables to enable this (see README.md)."
+    )
+else:
+    if len(high_risk_list) == 0:
+        st.success("No villages currently above the high-risk threshold — no alerts needed.")
+    else:
+        st.warning(f"{len(high_risk_list)} village(s) are at high risk: " + ", ".join(v["village"] for v in high_risk_list))
+
+        ac1, ac2 = st.columns([2, 1])
+        with ac1:
+            contact_input = st.text_input(
+                "Health worker phone number(s), comma-separated (E.164 format, e.g. +919876543210)",
+                placeholder="+919876543210, +919812345678",
+            )
+        with ac2:
+            channel = st.selectbox("Channel", ["sms", "whatsapp"])
+
+        if st.button("🚨 Send alert now"):
+            contacts = [c.strip() for c in contact_input.split(",") if c.strip()]
+            if not contacts:
+                st.error("Enter at least one phone number.")
+            else:
+                results = alerts.send_bulk_alerts(high_risk_list, contacts, channel=channel)
+                for r in results:
+                    if r["success"]:
+                        st.success(f"{r['village']} → {r['to']}: {r['message']}")
+                    else:
+                        st.error(f"{r['village']} → {r['to']}: {r['message']}")
 
 # ---------------------------------------------------------------------
 # Manual "What-if" risk checker (for health worker field entry)
