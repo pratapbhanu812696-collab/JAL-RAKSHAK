@@ -14,12 +14,15 @@ import os
 import plotly.express as px
 import plotly.graph_objects as go
 import alerts
+import auth
 
 st.set_page_config(
     page_title="JAL-RAKSHAK | Early Warning Dashboard",
     page_icon="💧",
     layout="wide",
 )
+
+auth.require_login()
 
 FEATURES = [
     "rainfall_mm",
@@ -86,6 +89,7 @@ if df is None or model is None:
 # Sidebar filters
 # ---------------------------------------------------------------------
 st.sidebar.header("🔎 Filters")
+auth.logout_button()
 villages = sorted(df["village"].unique())
 selected_village = st.sidebar.selectbox("Select Village", ["All"] + villages)
 
