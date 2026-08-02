@@ -46,7 +46,7 @@ This trains a Random Forest classifier and saves it to models/outbreak_model.pkl
 bash
 streamlit run app.py
 
-This opens the dashboard in your browser at http://localhost:8501.
+This opens the dashboard in your browser at https://jal-rakshak-7fyp.onrender.com/
 
 🧠 How It Works
 Data Layer — Simulated inputs: turbidity, pH, dissolved oxygen, bacterial count, rainfall, days since rain, reported symptom cases, population at risk.
