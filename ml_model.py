@@ -1,20 +1,32 @@
+
 """
-SANKET ML module - water-borne disease outbreak risk model.
+JAL RAKSHAK ML Module - Water Quality Risk Prediction Model.
 
 What it does
 ------------
-1. Generates a SYNTHETIC training dataset (fictional, not real surveillance data).
-2. Trains a Random Forest classifier on it.
-3. Gives the app a predict_risk() function that returns a risk probability.
+1. Generates a SYNTHETIC training dataset (fictional, not real-world water
+   quality or disease surveillance data).
+2. Trains a Random Forest classifier on the synthetic dataset.
+3. Provides a predict_risk() function that returns a predicted water-risk
+   probability for the application.
 
-Run this file directly to (re)train the model and see the evaluation:
+Run this file directly to (re)train the model and view its evaluation:
 
     python ml_model.py
 
-The app (app.py) also calls load_or_train() automatically, so if the saved model
-file is missing or was made with a different scikit-learn version, it simply
-retrains itself in about a second.
+The app (app.py) also calls load_or_train() automatically. If the saved model
+file is missing or was created with an incompatible scikit-learn version,
+the application retrains it automatically.
+
+IMPORTANT
+---------
+The model is trained on synthetic data and is intended for demonstration
+and educational purposes only. Its predictions and evaluation metrics do
+not establish real-world water contamination or disease outbreak accuracy.
+Real-world use requires appropriate field data, independent validation,
+and expert assessment.
 """
+
 
 import os
 
